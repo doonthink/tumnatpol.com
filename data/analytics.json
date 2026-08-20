@@ -1,0 +1,21 @@
+{
+  "totalViews": 0,
+  "uniqueVisitors": 0,
+  "avgSession": "00:00",
+  "bounceRate": "0%",
+  "trafficData": [
+    { "name": "Mon", "views": 0, "visitors": 0 },
+    { "name": "Tue", "views": 0, "visitors": 0 },
+    { "name": "Wed", "views": 0, "visitors": 0 },
+    { "name": "Thu", "views": 0, "visitors": 0 },
+    { "name": "Fri", "views": 0, "visitors": 0 },
+    { "name": "Sat", "views": 0, "visitors": 0 },
+    { "name": "Sun", "views": 0, "visitors": 0 }
+  ],
+  "deviceData": [
+    { "name": "Desktop", "value": 0 },
+    { "name": "Mobile", "value": 0 },
+    { "name": "Tablet", "value": 0 }
+  ],
+  "topPages": []
+}

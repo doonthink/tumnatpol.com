@@ -1,0 +1,17 @@
+[
+  {
+    "id": "4",
+    "name": "thitiphon",
+    "email": "thitiphon@alltimage.com",
+    "phone": "0820089912",
+    "role": "Super Admin",
+    "permissions": {
+      "pages": true,
+      "blogs": true,
+      "categories": true,
+      "media": true,
+      "roles": true,
+      "settings": true
+    }
+  }
+]

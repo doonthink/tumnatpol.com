@@ -1,0 +1,8 @@
+{
+  "name": "Tum_natpol",
+  "description": "บริการด้านเทคโนโลยีธุรกิจ ยกระดับธุรกิจไปอีกขั้น",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

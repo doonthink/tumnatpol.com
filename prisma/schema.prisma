@@ -1,0 +1,53 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql" // สามารถเปลี่ยนเป็น mysql หรือ sqlite ได้ตามต้องการ
+  url      = env("DATABASE_URL")
+}
+
+model Package {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String?
+  price_thb   Float
+  duration    String
+  status      String
+  is_featured Boolean  @default(false)
+  members     Member[]
+  orders      Order[]
+}
+
+model Member {
+  id            Int            @id @default(autoincrement())
+  name          String
+  email         String         @unique
+  package_id    Int?
+  package       Package?       @relation(fields: [package_id], references: [id])
+  status        String
+  created_at    DateTime       @default(now())
+  orders        Order[]
+  businessCheck BusinessCheck?
+}
+
+model BusinessCheck {
+  id           Int      @id @default(autoincrement())
+  member_id    Int      @unique
+  member       Member   @relation(fields: [member_id], references: [id])
+  company_name String
+  industry     String
+  issues       String   @db.Text
+  created_at   DateTime @default(now())
+}
+
+model Order {
+  id         Int      @id @default(autoincrement())
+  member_id  Int
+  member     Member   @relation(fields: [member_id], references: [id])
+  package_id Int
+  package    Package  @relation(fields: [package_id], references: [id])
+  amount     Float
+  status     String
+  created_at DateTime @default(now())
+}

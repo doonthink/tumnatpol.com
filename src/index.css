@@ -1,0 +1,32 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=Anuphan:wght@300;400;500;600;700&family=Noto+Sans+Thai:wght@300;400;500;600;700&family=Prompt:wght@300;400;500;600;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --color-primary: var(--theme-primary, #0D1B3D);
+  --color-primary-dark: var(--theme-primary-dark, #081025);
+  --color-secondary: var(--theme-secondary, #1E3A8A);
+  --color-accent: var(--theme-accent, #B87333);
+  --color-accent-dark: var(--theme-accent-dark, #a16329);
+  --color-background: var(--theme-background, #FFFFFF);
+  --color-text: var(--theme-text, #1F2937);
+  --color-heading: var(--theme-heading, #111827);
+  --color-button: var(--theme-button, #0D1B3D);
+  --color-button-text: var(--theme-button-text, #FFFFFF);
+  --color-link: var(--theme-link, #B87333);
+  --color-border: var(--theme-border, #E5E7EB);
+  
+  --font-sans: var(--font-body, "Noto Sans Thai"), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-heading, "Noto Sans Thai"), ui-sans-serif, system-ui, sans-serif;
+}
+
+body {
+  @apply font-sans bg-background text-text;
+  letter-spacing: -0.015em;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  @apply font-display text-heading;
+}
+
+
+

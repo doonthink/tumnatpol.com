@@ -1,0 +1,9 @@
+  configurable: true,
+  enumerable: true,
+  writable: true,
+  value: async (input: RequestInfo | URL, init?: RequestInit) => {
+  const url = typeof input === 'string' ? input : (input instanceof Request ? input.url : input.toString());
+
+  if (url.includes('/api/')) {
+    const resourcePath = url.substring(url.indexOf('/api/') + 5).split('?')[0];
+    const parts = resourcePath.split('/');
