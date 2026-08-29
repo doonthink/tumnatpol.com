@@ -18,21 +18,28 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     const auth = getAuth();
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setIsAuthenticated(!!user);
+      if (user) {
+        setIsAuthenticated(true);
+      } else {
+        const mockToken = localStorage.getItem('mock_admin_token');
+        setIsAuthenticated(!!mockToken);
+      }
       setLoading(false);
     });
     return () => unsubscribe();
   }, []);
 
   const login = (token: string) => {
-    // Handled by Firebase signInWithEmailAndPassword in Login.tsx
-    // But we keep this for interface compatibility
     setIsAuthenticated(true);
+    if (token.startsWith('mock')) {
+       localStorage.setItem('mock_admin_token', token);
+    }
   };
 
   const logout = async () => {
     const auth = getAuth();
     await signOut(auth);
+    localStorage.removeItem('mock_admin_token');
     setIsAuthenticated(false);
   };
 

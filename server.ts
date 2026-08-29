@@ -187,9 +187,9 @@ async function startServer() {
       });
       
       const data = await response.json();
-      // For v3, score >= 0.5 is generally considered a human
-      if (data.success && data.score >= 0.5) {
-        res.json({ success: true, score: data.score });
+      // For v3, score >= 0.5 is generally considered a human. V2 test keys don't return score.
+      if (data.success && (data.score === undefined || data.score >= 0.5)) {
+        res.json({ success: true, score: data.score || 1.0 });
       } else {
         res.status(403).json({ error: "Bot detected (reCAPTCHA score too low)", details: data });
       }
