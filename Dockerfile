@@ -2,20 +2,20 @@ FROM node:22-alpine
 
 WORKDIR /app
 
-# คัดลอกไฟล์จัดการ package
+# Copy package files
 COPY package.json ./
 
-# บังคับใช้ npm install แทน npm ci เพื่อตัดปัญหาไฟล์ lock ไม่ตรงกัน
+# Force install (bypasses the strict npm ci lockfile issues)
 RUN npm install
 
-# คัดลอกโค้ดทั้งหมด
+# Copy all source files
 COPY . .
 
-# สร้าง Build
+# Build the application
 RUN npm run build
 
-# เปิด Port 3000
+# Expose the port Cloud Run expects
 EXPOSE 3000
 
-# รันเซิร์ฟเวอร์
+# Start the application
 CMD ["npm", "start"]
