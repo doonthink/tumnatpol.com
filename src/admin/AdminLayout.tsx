@@ -163,7 +163,7 @@ export function AdminLayout() {
         <header className="h-20 bg-white border-b border-slate-200 px-8 flex items-center justify-between shrink-0 shadow-sm z-10">
           <div className="flex items-center gap-4">
             <h1 className="text-xl font-bold text-slate-800">{t("admin.dashboard")}</h1>
-            <span className="px-2 py-1 rounded bg-slate-100 text-xs font-semibold text-slate-500">v2.0 Enterprise</span>
+            <span className="px-2 py-1 rounded bg-slate-100 text-xs font-semibold text-slate-500">v2.1</span>
           </div>
           <div className="flex items-center gap-6">
             <div className="flex items-center gap-4">
