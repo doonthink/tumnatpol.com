@@ -54,6 +54,11 @@ export function PageForm() {
     setFormData(prev => ({ ...prev, [key]: value }));
   };
 
+  const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, checked } = e.target;
+    setFormData(prev => ({ ...prev, [name]: checked }));
+  };
+
 
   const handleSave = async (status: string) => {
     if (!formData.title) {
@@ -241,6 +246,27 @@ export function PageForm() {
 
         {/* Sidebar Settings */}
         <div className="space-y-6">
+          {formData.slug === 'home' && (
+            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 space-y-5">
+              <h2 className="text-lg font-bold text-slate-900 border-b border-slate-100 pb-3">ตั้งค่าหน้าแรก (Home Layout)</h2>
+              <div>
+                <label className="flex items-start gap-3 cursor-pointer">
+                  <input 
+                    type="checkbox" 
+                    name="useCustomLayout"
+                    checked={formData.useCustomLayout || false}
+                    onChange={handleCheckboxChange}
+                    className="mt-1 w-5 h-5 rounded border-slate-300 text-[#B87333] focus:ring-[#B87333]"
+                  />
+                  <span className="text-sm text-slate-700">
+                    <strong>ใช้รูปแบบกำหนดเอง</strong><br/>
+                    <span className="text-slate-500">ซ่อนส่วนแบนเนอร์และบริการที่ตั้งค่าไว้เดิม และแสดงเฉพาะเนื้อหาที่พิมพ์ในช่อง Text Editor อย่างเดียว</span>
+                  </span>
+                </label>
+              </div>
+            </div>
+          )}
+
           <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 space-y-5">
             <h2 className="text-lg font-bold text-slate-900 border-b border-slate-100 pb-3">{t("admin.page_settings")}</h2>
             
@@ -255,7 +281,8 @@ export function PageForm() {
                   name="slug"
                   value={formData.slug || ''}
                   onChange={handleChange}
-                  className="flex-1 min-w-0 px-3 py-2 rounded-r-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#B87333] focus:border-transparent" 
+                  disabled={formData.slug === 'home'}
+                  className="flex-1 min-w-0 px-3 py-2 rounded-r-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#B87333] focus:border-transparent disabled:bg-slate-100 disabled:text-slate-500" 
                   placeholder="about-us" 
                 />
               </div>

@@ -8,6 +8,9 @@ export function PageList() {
   const [pages, setPages] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchPages();
@@ -16,10 +19,19 @@ export function PageList() {
   const fetchPages = async () => {
     try {
       const res = await fetch('/api/pages');
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
       const data = await res.json();
-      setPages(data.filter((page: any) => page.slug !== 'service'));
-    } catch (error) {
-      console.error('Error fetching pages:', error);
+      if (Array.isArray(data)) {
+        setPages(data.filter((page: any) => page.slug !== 'service'));
+      } else {
+        setPages([]);
+        setError("Data received is not an array");
+      }
+    } catch (err: any) {
+      console.error('Error fetching pages:', err);
+      setError(err.message || "Failed to fetch pages");
     } finally {
       setLoading(false);
     }
@@ -34,6 +46,11 @@ export function PageList() {
       console.error('Error deleting page:', error);
     }
   };
+
+  const filteredPages = pages.filter(page => 
+    (page.title || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (page.slug || '').toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <div className="p-8 space-y-6">
@@ -58,6 +75,8 @@ export function PageList() {
             <input 
               type="text" 
               placeholder="ค้นหาชื่อเพจ หรือ URL Slug..." 
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-10 pr-4 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#B87333] focus:border-transparent"
             />
           </div>
@@ -78,12 +97,16 @@ export function PageList() {
               <tr>
                 <td colSpan={5} className="px-6 py-4 text-center text-slate-500">{t("admin.loading")}</td>
               </tr>
-            ) : pages.length === 0 ? (
+            ) : error ? (
+              <tr>
+                <td colSpan={5} className="px-6 py-4 text-center text-red-500 font-medium">Error: {error}</td>
+              </tr>
+            ) : filteredPages.length === 0 ? (
               <tr>
                 <td colSpan={5} className="px-6 py-4 text-center text-slate-500">{t("admin.no_data")}</td>
               </tr>
             ) : (
-              pages.map((page) => (
+              filteredPages.map((page) => (
                 <tr key={page.id} className="hover:bg-slate-50 transition-colors">
                   <td className="px-6 py-4 font-medium text-slate-900">{page.title}</td>
                   <td className="px-6 py-4 text-slate-500">{page.slug}</td>

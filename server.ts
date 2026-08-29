@@ -515,6 +515,23 @@ async function startServer() {
   // Pages API
   app.get("/api/pages", async (req, res) => {
     let pages = (await readData("pages.json")) as any[];
+    if (!Array.isArray(pages)) pages = [];
+    
+    // Ensure home page exists
+    if (!pages.find((p: any) => p.slug === 'home')) {
+      const homePage = {
+        id: 'home-page-id',
+        title: 'Home Page',
+        title_en: 'Home Page',
+        slug: 'home',
+        status: 'Published',
+        content: '',
+        lastUpdated: new Date().toISOString()
+      };
+      pages.push(homePage);
+      await writeData("pages.json", pages);
+    }
+    
     res.json(pages);
   });
 
@@ -547,6 +564,11 @@ async function startServer() {
 
   app.delete("/api/pages/:id", async (req, res) => {
     let pages = (await readData("pages.json")) as any[];
+    const pageToDelete = pages.find((p: any) => p.id === req.params.id);
+    if (pageToDelete && pageToDelete.slug === 'home') {
+      res.status(403).json({ error: "Cannot delete home page" });
+      return;
+    }
     const filteredPages = pages.filter((p: any) => p.id !== req.params.id);
     await writeData("pages.json", filteredPages);
     res.json({ success: true });

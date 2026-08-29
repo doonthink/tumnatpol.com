@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useGoogleReCaptcha } from 'react-google-recaptcha-v3';
-import { signInWithEmailAndPassword, getMultiFactorResolver, TotpMultiFactorGenerator } from 'firebase/auth';
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, getMultiFactorResolver, TotpMultiFactorGenerator } from 'firebase/auth';
 import { auth } from '../lib/firebase';
 import { Lock, Mail, User, AlertCircle, ArrowLeft, Eye, EyeOff, ShieldCheck } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -29,6 +29,11 @@ export function Login() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    
+    let emailToLogin = username;
+    if (!emailToLogin.includes('@')) {
+       emailToLogin = emailToLogin === 'admin' ? 'doonthink@gmail.com' : emailToLogin + '@biztoptier.com';
+    }
     
     if (!executeRecaptcha) {
       setError('ระบบป้องกันบอทยังไม่พร้อมทำงาน กรุณารอสักครู่');
@@ -63,10 +68,6 @@ export function Login() {
       // Proceed with Login
 
       // Use Firebase Auth
-      let emailToLogin = username;
-      if (!emailToLogin.includes('@')) {
-         emailToLogin = emailToLogin === 'admin' ? 'doonthink@gmail.com' : emailToLogin + '@biztoptier.com';
-      }
       const userCredential = await signInWithEmailAndPassword(auth, emailToLogin, password);
       
       // Attempt to log activity
@@ -94,12 +95,19 @@ export function Login() {
         return;
       }
       
-      // Fallback for demo purposes if they haven't created the account in Firebase console yet
-      if (password === 'Businesstoptier@2026') {
-         console.warn("Using fallback local login because Firebase Auth failed (Account not created yet).");
-         login('mock-jwt-token-123');
-         navigate('/admin');
-         return;
+      // Auto-create admin account for first-time setup
+      if ((err.code === 'auth/invalid-credential' || err.code === 'auth/user-not-found') && emailToLogin === 'doonthink@gmail.com' && password === 'Businesstoptier@2026') {
+         console.warn("Attempting to auto-create default admin account in Firebase...");
+         try {
+           const newUserCredential = await createUserWithEmailAndPassword(auth, emailToLogin, password);
+           login(newUserCredential.user.uid);
+           navigate('/admin');
+           return;
+         } catch (createErr: any) {
+           console.error("Auto-create failed:", createErr);
+           setError('ไม่สามารถสร้างบัญชีผู้ดูแลระบบได้ (' + createErr.message + ')');
+           return;
+         }
       }
 
       setError('ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง (Firebase: ' + err.message + ')');

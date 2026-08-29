@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Edit2, Trash2, Plus, Image as ImageIcon, Check, X, ArrowLeft, Save } from 'lucide-react';
+import { Edit2, Trash2, Plus, ArrowLeft } from 'lucide-react';
+import { BannerForm } from './BannerForm';
 
 export function BannerList() {
   const [banners, setBanners] = useState<any[]>([]);
@@ -80,33 +81,14 @@ export function BannerList() {
     setView('form');
   };
 
-  const handleFormChange = (e: any) => {
-    const { name, value, type, checked } = e.target;
-    if (type === 'checkbox') {
-      setFormData({ ...formData, [name]: checked ? 'Active' : 'Inactive' });
-    } else {
-      setFormData({ ...formData, [name]: value });
-    }
-  };
-
-  const handleImageUpload = (e: any) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setFormData({ ...formData, image: reader.result as string });
-    };
-    reader.readAsDataURL(file);
-  };
-
-  const handleSave = async () => {
+  const handleSave = async (savedData: any) => {
     try {
-      const url = formData.id ? `/api/banners/${formData.id}` : '/api/banners';
-      const method = formData.id ? 'PUT' : 'POST';
+      const url = savedData.id ? `/api/banners/${savedData.id}` : '/api/banners';
+      const method = savedData.id ? 'PUT' : 'POST';
       await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...formData, order: parseInt(formData.order) || 0 }),
+        body: JSON.stringify({ ...savedData, order: parseInt(savedData.order) || 0 }),
       });
       await fetchBanners();
       setView('list');
@@ -133,73 +115,14 @@ export function BannerList() {
 
   if (view === 'form') {
     return (
-      <div className="p-8 space-y-6">
-        <div className="flex justify-between items-center mb-6">
-          <div>
-            <h1 className="text-2xl font-bold text-slate-900">{formData.id ? 'แก้ไขแบนเนอร์' : 'เพิ่มแบนเนอร์ใหม่'}</h1>
-          </div>
-          <div className="flex items-center gap-3">
-             <button onClick={() => setView('list')} className="px-4 py-2 border border-slate-300 text-slate-700 rounded-lg text-sm font-medium hover:bg-slate-50 transition-colors inline-flex items-center gap-1">
-              <ArrowLeft className="w-4 h-4" /> ยกเลิก
-             </button>
-             <button onClick={handleSave} className="px-4 py-2 bg-[#B87333] text-white rounded-lg text-sm font-medium hover:bg-[#a0632b] transition-colors shadow-md inline-flex items-center gap-2">
-              <Save className="w-4 h-4" /> บันทึก
-            </button>
-          </div>
-        </div>
-        
-        <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
-          <div className="max-w-2xl space-y-6">
-            <div className="grid grid-cols-[150px_1fr] items-center gap-4">
-              <label className="text-sm font-medium text-slate-700">ชื่อแบนเนอร์</label>
-              <input type="text" name="name" value={formData.name || ''} onChange={handleFormChange} className="w-full px-4 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#B87333] focus:border-transparent text-sm" placeholder="เช่น แบนเนอร์โปรโมชั่น 1" />
-            </div>
-
-            <div className="grid grid-cols-[150px_1fr] items-start gap-4">
-              <label className="text-sm font-medium text-slate-700 pt-3">รูปภาพแบนเนอร์</label>
-              <div>
-                {formData.image ? (
-                  <div className="relative inline-block">
-                    <img src={formData.image} alt="Preview" className="max-h-48 rounded-lg border border-slate-200" />
-                    <button onClick={() => setFormData({ ...formData, image: '' })} className="absolute -top-2 -right-2 p-1 bg-white rounded-full shadow-md text-slate-400 hover:text-rose-500 transition-colors">
-                      <X className="w-4 h-4" />
-                    </button>
-                  </div>
-                ) : (
-                  <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-slate-300 rounded-lg cursor-pointer hover:bg-slate-50 transition-colors">
-                    <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                      <ImageIcon className="w-8 h-8 text-slate-400 mb-2" />
-                      <p className="text-sm text-slate-500">คลิกเพื่ออัปโหลดรูปภาพ</p>
-                    </div>
-                    <input type="file" className="hidden" accept="image/*" onChange={handleImageUpload} />
-                  </label>
-                )}
-              </div>
-            </div>
-
-            <div className="grid grid-cols-[150px_1fr] items-center gap-4">
-              <label className="text-sm font-medium text-slate-700">ลิงก์ (URL)</label>
-              <input type="text" name="link" value={formData.link || ''} onChange={handleFormChange} className="w-full px-4 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#B87333] focus:border-transparent text-sm" placeholder="https://..." />
-            </div>
-            
-            <div className="grid grid-cols-[150px_1fr] items-center gap-4">
-              <label className="text-sm font-medium text-slate-700">ลำดับการแสดงผล</label>
-              <input type="number" name="order" value={formData.order || 0} onChange={handleFormChange} className="w-32 px-4 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#B87333] focus:border-transparent text-sm" />
-            </div>
-
-            <div className="grid grid-cols-[150px_1fr] items-center gap-4">
-              <label className="text-sm font-medium text-slate-700">สถานะ</label>
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" name="status" checked={formData.status === 'Active'} onChange={handleFormChange} className="sr-only peer" />
-                <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-[#B87333]/30 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#B87333]"></div>
-                <span className="ml-3 text-sm font-medium text-slate-700">{formData.status === 'Active' ? 'เปิดใช้งาน' : 'ปิดการแสดงผล'}</span>
-              </label>
-            </div>
-          </div>
-        </div>
-      </div>
+      <BannerForm 
+        initialData={formData} 
+        onSave={handleSave} 
+        onCancel={() => setView('list')} 
+      />
     );
   }
+
 
   return (
     <div className="p-8 space-y-6">

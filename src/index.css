@@ -15,6 +15,9 @@
   --color-link: var(--theme-link, #B87333);
   --color-border: var(--theme-border, #E5E7EB);
   
+  --font-prompt: "Prompt", sans-serif;
+  --font-noto: "Noto Sans Thai", sans-serif;
+
   --font-sans: var(--font-body, "Noto Sans Thai"), ui-sans-serif, system-ui, sans-serif;
   --font-display: var(--font-heading, "Noto Sans Thai"), ui-sans-serif, system-ui, sans-serif;
 }
