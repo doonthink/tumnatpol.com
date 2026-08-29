@@ -62,97 +62,15 @@ export function BannerCarousel({ fallback }: { fallback?: React.ReactNode }) {
   };
 
   if (loading) return null;
+  
+  // Defensive check in case data is malformed
+  const activeBanners = Array.isArray(banners) ? banners : [];
+  
   if (!showBannerSection) return <>{fallback}</>;
-  if (banners.length === 0) return <>{fallback}</>;
+  if (activeBanners.length === 0) return <>{fallback}</>;
 
-  const currentBanner = banners[currentIndex];
-
-  const BannerContent = ({ banner }: { banner: any }) => {
-    if (banner.layoutType === 'hero') {
-      return (
-        <div 
-          className="w-full h-[400px] lg:h-[500px] xl:h-[600px] flex items-center p-8 md:p-16 relative overflow-hidden"
-          style={{
-            background: banner.background?.stops?.length > 1 
-              ? `linear-gradient(${banner.background.direction}, ${banner.background.stops.map((s:any) => s.color).join(', ')})`
-              : banner.background?.solidColor || '#f8fafc'
-          }}
-        >
-          {banner.background?.patternImage && (
-            <div 
-              className="absolute inset-0 opacity-20 bg-cover bg-center pointer-events-none"
-              style={{ backgroundImage: `url(${banner.background.patternImage})` }}
-            />
-          )}
-          <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12 items-center max-w-7xl mx-auto w-full">
-            <div className="space-y-6">
-              {banner.badge?.text && (
-                <span className={`inline-block px-4 py-1.5 rounded-full text-sm font-semibold bg-white/90 shadow-sm ${banner.badge.font}`} style={{ color: banner.badge.color }}>
-                  {banner.badge.text}
-                </span>
-              )}
-              {banner.heading1?.text && (
-                <h2 className={`${banner.heading1.size} ${banner.heading1.weight} ${banner.heading1.font} leading-tight`} style={{ color: banner.heading1.color }}>
-                  {banner.heading1.text}
-                </h2>
-              )}
-              {banner.heading2?.text && (
-                <h3 className={`${banner.heading2.size} ${banner.heading2.weight} ${banner.heading2.font}`} style={{ color: banner.heading2.color }}>
-                  {banner.heading2.text}
-                </h3>
-              )}
-              {banner.description?.text && (
-                <p className={`text-lg md:text-xl ${banner.description.font} opacity-90 max-w-xl`} style={{ color: banner.description.color }}>
-                  {banner.description.text}
-                </p>
-              )}
-              <div className="flex flex-wrap items-center gap-4 pt-4">
-                {banner.primaryButton?.text && (
-                  banner.primaryButton.link ? (
-                    <a href={banner.primaryButton.link} className={`px-8 py-3.5 rounded-xl shadow-lg font-semibold transition-transform hover:scale-105 ${banner.primaryButton.font}`} style={{ backgroundColor: banner.primaryButton.bgColor, color: banner.primaryButton.textColor }}>
-                      {banner.primaryButton.text}
-                    </a>
-                  ) : (
-                    <button className={`px-8 py-3.5 rounded-xl shadow-lg font-semibold transition-transform hover:scale-105 ${banner.primaryButton.font}`} style={{ backgroundColor: banner.primaryButton.bgColor, color: banner.primaryButton.textColor }}>
-                      {banner.primaryButton.text}
-                    </button>
-                  )
-                )}
-                {banner.secondaryButton?.text && (
-                  banner.secondaryButton.link ? (
-                    <a href={banner.secondaryButton.link} className={`px-8 py-3.5 rounded-xl shadow-md font-semibold transition-transform hover:scale-105 border border-black/10 ${banner.secondaryButton.font}`} style={{ backgroundColor: banner.secondaryButton.bgColor, color: banner.secondaryButton.textColor }}>
-                      {banner.secondaryButton.text}
-                    </a>
-                  ) : (
-                    <button className={`px-8 py-3.5 rounded-xl shadow-md font-semibold transition-transform hover:scale-105 border border-black/10 ${banner.secondaryButton.font}`} style={{ backgroundColor: banner.secondaryButton.bgColor, color: banner.secondaryButton.textColor }}>
-                      {banner.secondaryButton.text}
-                    </button>
-                  )
-                )}
-              </div>
-            </div>
-            {banner.image && (
-              <div className="relative h-64 md:h-96 lg:h-[450px] rounded-3xl overflow-hidden shadow-2xl hidden md:block">
-                <img src={banner.image} alt={banner.name || 'Banner graphic'} className="w-full h-full object-cover" />
-              </div>
-            )}
-          </div>
-        </div>
-      );
-    }
-
-    return (
-      <div className="w-full h-[400px] lg:h-[500px] xl:h-[600px] relative bg-slate-900 overflow-hidden flex-shrink-0">
-        {banner.image ? (
-          <img src={banner.image} alt={banner.name} className="w-full h-full object-cover" />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#0D1B3D] to-indigo-900 text-white">
-            <h2 className="text-4xl font-bold font-display px-4 text-center">{banner.name}</h2>
-          </div>
-        )}
-      </div>
-    );
-  };
+  const currentBanner = activeBanners[currentIndex];
+  if (!currentBanner) return <>{fallback}</>;
 
   return (
     <div className="relative w-full overflow-hidden group bg-slate-50">
@@ -175,7 +93,7 @@ export function BannerCarousel({ fallback }: { fallback?: React.ReactNode }) {
         </motion.div>
       </AnimatePresence>
 
-      {banners.length > 1 && (
+      {activeBanners.length > 1 && (
         <>
           <button
             onClick={goToPrev}
@@ -191,7 +109,7 @@ export function BannerCarousel({ fallback }: { fallback?: React.ReactNode }) {
           </button>
           
           <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-2 z-10">
-            {banners.map((_, index) => (
+            {activeBanners.map((_, index) => (
               <button
                 key={index}
                 onClick={() => setCurrentIndex(index)}
@@ -206,3 +124,90 @@ export function BannerCarousel({ fallback }: { fallback?: React.ReactNode }) {
     </div>
   );
 }
+
+const BannerContent = ({ banner }: { banner: any }) => {
+  if (banner.layoutType === 'hero') {
+    return (
+      <div 
+        className="w-full h-[400px] lg:h-[500px] xl:h-[600px] flex items-center p-8 md:p-16 relative overflow-hidden"
+        style={{
+          background: banner.background?.stops?.length > 1 
+            ? `linear-gradient(${banner.background.direction}, ${banner.background.stops.map((s:any) => s.color).join(', ')})`
+            : banner.background?.solidColor || '#f8fafc'
+        }}
+      >
+        {banner.background?.patternImage && (
+          <div 
+            className="absolute inset-0 opacity-20 bg-cover bg-center pointer-events-none"
+            style={{ backgroundImage: `url(${banner.background.patternImage})` }}
+          />
+        )}
+        <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12 items-center max-w-7xl mx-auto w-full">
+          <div className="space-y-6">
+            {banner.badge?.text && (
+              <span className={`inline-block px-4 py-1.5 rounded-full text-sm font-semibold bg-white/90 shadow-sm ${banner.badge?.font || ''}`} style={{ color: banner.badge?.color }}>
+                {banner.badge.text}
+              </span>
+            )}
+            {banner.heading1?.text && (
+              <h2 className={`${banner.heading1?.size || 'text-4xl'} ${banner.heading1?.weight || 'font-bold'} ${banner.heading1?.font || ''} leading-tight`} style={{ color: banner.heading1?.color }}>
+                {banner.heading1.text}
+              </h2>
+            )}
+            {banner.heading2?.text && (
+              <h3 className={`${banner.heading2?.size || 'text-2xl'} ${banner.heading2?.weight || 'font-semibold'} ${banner.heading2?.font || ''}`} style={{ color: banner.heading2?.color }}>
+                {banner.heading2.text}
+              </h3>
+            )}
+            {banner.description?.text && (
+              <p className={`text-lg md:text-xl ${banner.description?.font || ''} opacity-90 max-w-xl`} style={{ color: banner.description?.color }}>
+                {banner.description.text}
+              </p>
+            )}
+            <div className="flex flex-wrap items-center gap-4 pt-4">
+              {banner.primaryButton?.text && (
+                banner.primaryButton.link ? (
+                  <a href={banner.primaryButton.link} className={`px-8 py-3.5 rounded-xl shadow-lg font-semibold transition-transform hover:scale-105 ${banner.primaryButton?.font || ''}`} style={{ backgroundColor: banner.primaryButton?.bgColor, color: banner.primaryButton?.textColor }}>
+                    {banner.primaryButton.text}
+                  </a>
+                ) : (
+                  <button className={`px-8 py-3.5 rounded-xl shadow-lg font-semibold transition-transform hover:scale-105 ${banner.primaryButton?.font || ''}`} style={{ backgroundColor: banner.primaryButton?.bgColor, color: banner.primaryButton?.textColor }}>
+                    {banner.primaryButton.text}
+                  </button>
+                )
+              )}
+              {banner.secondaryButton?.text && (
+                banner.secondaryButton.link ? (
+                  <a href={banner.secondaryButton.link} className={`px-8 py-3.5 rounded-xl shadow-md font-semibold transition-transform hover:scale-105 border border-black/10 ${banner.secondaryButton?.font || ''}`} style={{ backgroundColor: banner.secondaryButton?.bgColor, color: banner.secondaryButton?.textColor }}>
+                    {banner.secondaryButton.text}
+                  </a>
+                ) : (
+                  <button className={`px-8 py-3.5 rounded-xl shadow-md font-semibold transition-transform hover:scale-105 border border-black/10 ${banner.secondaryButton?.font || ''}`} style={{ backgroundColor: banner.secondaryButton?.bgColor, color: banner.secondaryButton?.textColor }}>
+                    {banner.secondaryButton.text}
+                  </button>
+                )
+              )}
+            </div>
+          </div>
+          {banner.image && (
+            <div className="relative h-64 md:h-96 lg:h-[450px] rounded-3xl overflow-hidden shadow-2xl hidden md:block">
+              <img src={banner.image} alt={banner.name || 'Banner graphic'} className="w-full h-full object-cover" />
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="w-full h-[400px] lg:h-[500px] xl:h-[600px] relative bg-slate-900 overflow-hidden flex-shrink-0">
+      {banner.image ? (
+        <img src={banner.image} alt={banner.name || 'Banner'} className="w-full h-full object-cover" />
+      ) : (
+        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#0D1B3D] to-indigo-900 text-white">
+          <h2 className="text-4xl font-bold font-display px-4 text-center">{banner.name || 'Banner'}</h2>
+        </div>
+      )}
+    </div>
+  );
+};

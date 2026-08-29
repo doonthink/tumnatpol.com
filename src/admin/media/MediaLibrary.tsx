@@ -45,58 +45,87 @@ export function MediaLibrary() {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    const formData = new FormData();
-    formData.append('file', file);
+    let fileType = 'document';
+    if (file.type.startsWith('image/')) fileType = 'image';
+    else if (file.type.startsWith('video/')) fileType = 'video';
+    
+    let sizeFormatted = (file.size / 1024).toFixed(1) + ' KB';
+    if (file.size > 1024 * 1024) {
+      sizeFormatted = (file.size / (1024 * 1024)).toFixed(2) + ' MB';
+    }
 
     try {
-      const uploadRes = await fetch('/api/videos/upload', {
+      let finalUrl = '';
+      
+      if (fileType === 'image') {
+        const reader = new FileReader();
+        finalUrl = await new Promise((resolve) => {
+          reader.onload = (e) => {
+            const img = new Image();
+            img.onload = () => {
+              const canvas = document.createElement('canvas');
+              let width = img.width;
+              let height = img.height;
+              const maxDim = 1200; 
+              if (width > maxDim || height > maxDim) {
+                if (width > height) {
+                  height = Math.round((height * maxDim) / width);
+                  width = maxDim;
+                } else {
+                  width = Math.round((width * maxDim) / height);
+                  height = maxDim;
+                }
+              }
+              canvas.width = width;
+              canvas.height = height;
+              const ctx = canvas.getContext('2d');
+              if (ctx) {
+                ctx.drawImage(img, 0, 0, width, height);
+                resolve(canvas.toDataURL('image/jpeg', 0.85));
+              } else {
+                resolve(e.target?.result as string);
+              }
+            };
+            img.src = e.target?.result as string;
+          };
+          reader.readAsDataURL(file);
+        });
+      } else {
+        const formData = new FormData();
+        formData.append('file', file);
+        const uploadRes = await fetch('/api/videos/upload', {
+          method: 'POST',
+          body: formData,
+        });
+        if (uploadRes.ok) {
+          const uploadData = await uploadRes.json();
+          finalUrl = uploadData.url;
+        } else {
+          throw new Error('Upload failed');
+        }
+      }
+
+      const res = await fetch('/api/media', {
         method: 'POST',
-        body: formData,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: file.name,
+          type: fileType,
+          size: sizeFormatted,
+          date: new Date().toISOString().split('T')[0],
+          url: finalUrl,
+          folderId: activeFolder
+        })
       });
 
-      if (uploadRes.ok) {
-        const uploadData = await uploadRes.json();
-        
-        let fileType = 'document';
-        if (file.type.startsWith('image/')) fileType = 'image';
-        else if (file.type.startsWith('video/')) fileType = 'video';
-
-        let sizeFormatted = (file.size / 1024).toFixed(1) + ' KB';
-        if (file.size > 1024 * 1024) {
-          sizeFormatted = (file.size / (1024 * 1024)).toFixed(2) + ' MB';
-        }
-
-        const res = await fetch('/api/media', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            name: uploadData.filename || file.name,
-            type: fileType,
-            size: sizeFormatted,
-            date: new Date().toISOString().split('T')[0],
-            url: uploadData.url,
-            folderId: activeFolder
-          })
-        });
-
-        if (res.ok) {
-          fetchMedia();
-        }
-      } else {
-        alert('Upload failed.');
+      if (res.ok) {
+        fetchMedia();
       }
-    } catch (err) {
-      console.error('Error uploading file:', err);
-      alert('Error uploading file');
+    } catch (error) {
+      console.error('Error uploading file:', error);
+      alert('Upload failed');
     }
-    
-    // Clear input
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
-  };
-
-  const handleCopy = (url: string) => {
+  };const handleCopy = (url: string) => {
     const fullUrl = url.startsWith('/') ? window.location.origin + url : url;
     navigator.clipboard.writeText(fullUrl);
     alert('คัดลอกที่อยู่รูปภาพแล้ว (Copied to clipboard)');

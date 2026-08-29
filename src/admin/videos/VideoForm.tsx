@@ -110,35 +110,67 @@ export function VideoForm() {
     }
 
     setSaving(true);
-    setUploadProgress(10); // Start progress
+    setUploadProgress(10); 
 
     try {
-      // 1. Upload Files first if there are any
       let uploadedThumbnail = thumbnailPreview;
       let uploadedVideo = videoPreview;
 
-      if (thumbnailFile || videoFile) {
+      // Upload thumbnail as Base64 (Compressed)
+      if (thumbnailFile) {
+        setUploadProgress(30);
+        const reader = new FileReader();
+        uploadedThumbnail = await new Promise((resolve) => {
+          reader.onload = (ev) => {
+            const img = new Image();
+            img.onload = () => {
+              const canvas = document.createElement('canvas');
+              let width = img.width;
+              let height = img.height;
+              const maxDim = 1200;
+              if (width > maxDim || height > maxDim) {
+                if (width > height) {
+                  height = Math.round((height * maxDim) / width);
+                  width = maxDim;
+                } else {
+                  width = Math.round((width * maxDim) / height);
+                  height = maxDim;
+                }
+              }
+              canvas.width = width;
+              canvas.height = height;
+              const ctx = canvas.getContext('2d');
+              if (ctx) {
+                ctx.drawImage(img, 0, 0, width, height);
+                resolve(canvas.toDataURL('image/jpeg', 0.85));
+              } else {
+                resolve(ev.target?.result as string);
+              }
+            };
+            img.src = ev.target?.result as string;
+          };
+          reader.readAsDataURL(thumbnailFile);
+        });
+      }
+
+      // Upload Video
+      if (videoFile) {
+        setUploadProgress(50);
         const uploadData = new FormData();
-        if (thumbnailFile) uploadData.append('thumbnail', thumbnailFile);
-        if (videoFile) uploadData.append('video', videoFile);
-
-        setUploadProgress(40);
-
+        uploadData.append('file', videoFile);
         const uploadRes = await fetch('/api/videos/upload', {
           method: 'POST',
           body: uploadData
         });
-
-        if (!uploadRes.ok) throw new Error('Upload failed');
+        if (!uploadRes.ok) throw new Error('Video upload failed');
         const uploadResult = await uploadRes.json();
-        
-        if (uploadResult.thumbnailUrl) uploadedThumbnail = uploadResult.thumbnailUrl;
-        if (uploadResult.videoUrl) uploadedVideo = uploadResult.videoUrl;
-        
-        setUploadProgress(80);
+        if (uploadResult.url) {
+          uploadedVideo = uploadResult.url;
+        }
       }
 
-      // 2. Save Video Data
+      setUploadProgress(80);
+
       const finalData = {
         ...formData,
         slug: formData.slug || generateSlug(formData.title),
