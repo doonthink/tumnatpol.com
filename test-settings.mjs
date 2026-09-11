@@ -1,15 +1,17 @@
 import { initializeApp } from 'firebase/app';
-import { getFirestore, doc, getDoc } from 'firebase/firestore';
+import { getFirestore, getDoc, doc } from 'firebase/firestore';
 import fs from 'fs';
-const firebaseConfig = JSON.parse(fs.readFileSync('./firebase-applet-config.json', 'utf8'));
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
-async function test() {
-  const docSnap = await getDoc(doc(db, 'singletons', 'settings'));
-  if (docSnap.exists()) {
-    console.log("Settings:", JSON.stringify(docSnap.data(), null, 2));
+
+const config = JSON.parse(fs.readFileSync('./firebase-applet-config.json'));
+const app = initializeApp(config);
+const db = getFirestore(app, config.firestoreDatabaseId);
+
+async function check() {
+  const settingsDoc = await getDoc(doc(db, "singletons", "settings"));
+  if (settingsDoc.exists()) {
+    console.log(settingsDoc.data());
   } else {
-    console.log("No settings found in Firebase");
+    console.log("No settings doc found");
   }
 }
-test().catch(console.error);
+check();

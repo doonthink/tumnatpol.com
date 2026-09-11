@@ -201,8 +201,8 @@ const BannerContent = ({ banner }: { banner: any }) => {
 
   return (
     <div className="w-full h-[400px] lg:h-[500px] xl:h-[600px] relative bg-slate-900 overflow-hidden flex-shrink-0">
-      {banner.image ? (
-        <img src={banner.image} alt={banner.name || 'Banner'} className="w-full h-full object-cover" />
+      {banner.image || banner.background?.patternImage ? (
+        <img src={banner.image || banner.background?.patternImage} alt={banner.name || 'Banner'} className="w-full h-full object-cover" />
       ) : (
         <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#0D1B3D] to-indigo-900 text-white">
           <h2 className="text-4xl font-bold font-display px-4 text-center">{banner.name || 'Banner'}</h2>

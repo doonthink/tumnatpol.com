@@ -2,18 +2,17 @@ import { initializeApp } from 'firebase/app';
 import { getFirestore, collection, getDocs } from 'firebase/firestore';
 import fs from 'fs';
 
-const firebaseConfig = JSON.parse(fs.readFileSync('./firebase-applet-config.json', 'utf8'));
+const config = JSON.parse(fs.readFileSync('./firebase-applet-config.json'));
+const app = initializeApp(config);
+const db = getFirestore(app, config.firestoreDatabaseId);
 
-const firebaseApp = initializeApp(firebaseConfig);
-const db = getFirestore(firebaseApp, firebaseConfig.firestoreDatabaseId);
-
-async function test() {
-  const qs = await getDocs(collection(db, 'banners'));
+async function check() {
+  const querySnapshot = await getDocs(collection(db, "banners"));
   const banners = [];
-  qs.forEach(d => banners.push(d.data()));
-  console.log("Banners in Firebase:", banners.length);
-  if (banners.length > 0) {
-     console.log("First banner image:", banners[0].image ? banners[0].image.substring(0, 50) + '...' : 'none');
-  }
+  querySnapshot.forEach((doc) => {
+    banners.push(doc.data());
+  });
+  console.log(banners.length, "banners found");
+  console.log(banners.map(b => ({ id: b.id, name: b.name, status: b.status, imageLength: b.image ? b.image.length : 0 })));
 }
-test().catch(console.error);
+check();

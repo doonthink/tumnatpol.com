@@ -197,6 +197,19 @@ export function PageForm() {
                             setFormData(prev => ({ ...prev, [lang === 'en' ? 'content_en' : 'content']: content }));
                         }}
                         init={{
+
+                            images_upload_handler: async (blobInfo, progress) => {
+                              return new Promise(async (resolve, reject) => {
+                                try {
+                                  const file = blobInfo.blob();
+                                  const { compressImage } = await import('../../lib/imageUtils');
+                                  const base64 = await compressImage(file, 1000, 0.8);
+                                  resolve(base64);
+                                } catch (err) {
+                                  reject('Image upload failed: ' + err.message);
+                                }
+                              });
+                            },
                             height: 500,
                             menubar: true,
                             plugins: [

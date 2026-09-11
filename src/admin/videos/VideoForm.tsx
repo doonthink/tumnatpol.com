@@ -1,3 +1,4 @@
+import { compressImage } from "../../lib/imageUtils";
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Upload, Save, Play, Image as ImageIcon } from 'lucide-react';
@@ -119,38 +120,7 @@ export function VideoForm() {
       // Upload thumbnail as Base64 (Compressed)
       if (thumbnailFile) {
         setUploadProgress(30);
-        const reader = new FileReader();
-        uploadedThumbnail = await new Promise((resolve) => {
-          reader.onload = (ev) => {
-            const img = new Image();
-            img.onload = () => {
-              const canvas = document.createElement('canvas');
-              let width = img.width;
-              let height = img.height;
-              const maxDim = 1200;
-              if (width > maxDim || height > maxDim) {
-                if (width > height) {
-                  height = Math.round((height * maxDim) / width);
-                  width = maxDim;
-                } else {
-                  width = Math.round((width * maxDim) / height);
-                  height = maxDim;
-                }
-              }
-              canvas.width = width;
-              canvas.height = height;
-              const ctx = canvas.getContext('2d');
-              if (ctx) {
-                ctx.drawImage(img, 0, 0, width, height);
-                resolve(canvas.toDataURL('image/jpeg', 0.85));
-              } else {
-                resolve(ev.target?.result as string);
-              }
-            };
-            img.src = ev.target?.result as string;
-          };
-          reader.readAsDataURL(thumbnailFile);
-        });
+        uploadedThumbnail = await compressImage(thumbnailFile, 1200, 0.85);
       }
 
       // Upload Video
@@ -261,6 +231,19 @@ export function VideoForm() {
                     value={formData.description}
                     onEditorChange={(content) => setFormData({ ...formData, description: content })}
                     init={{
+
+                            images_upload_handler: async (blobInfo, progress) => {
+                              return new Promise(async (resolve, reject) => {
+                                try {
+                                  const file = blobInfo.blob();
+                                  const { compressImage } = await import('../../lib/imageUtils');
+                                  const base64 = await compressImage(file, 1000, 0.8);
+                                  resolve(base64);
+                                } catch (err) {
+                                  reject('Image upload failed: ' + err.message);
+                                }
+                              });
+                            },
                       height: 400,
                       menubar: false,
                       plugins: ['advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview', 'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen', 'insertdatetime', 'media', 'table', 'code', 'help', 'wordcount'],

@@ -1,3 +1,4 @@
+import { compressImage } from "../../lib/imageUtils";
 import { useState, useEffect } from 'react';
 import { Save, Globe, Layout, AppWindow, Palette, Mail, Shield, Database, Key, CheckCircle, Clock, Users, Download, Upload, FileArchive, Trash2, RefreshCw, AlertTriangle, Check, FileText } from 'lucide-react';
 import { StaffSettings } from './StaffSettings';
@@ -329,38 +330,40 @@ export function SettingsPage() {
     }));
   };
 
-  const handleLogoUpload = (e: any) => {
+  const handleLogoUpload = async (e: any) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onloadend = () => {
+    try {
+      const base64 = await compressImage(file, 400); // 400px width/height limit for logo
       setSettings((prev: any) => ({
         ...prev,
         general: {
           ...prev.general,
-          logoUrl: reader.result as string
+          logoUrl: base64
         }
       }));
       setIsLogoSelected(true);
-    };
-    reader.readAsDataURL(file);
+    } catch (error) {
+      console.error("Error compressing logo", error);
+    }
   };
 
-  const handleFaviconUpload = (e: any) => {
+  const handleFaviconUpload = async (e: any) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onloadend = () => {
+    try {
+      const base64 = await compressImage(file, 90); // 90px limit for favicon
       setSettings((prev: any) => ({
         ...prev,
         general: {
           ...prev.general,
-          faviconUrl: reader.result as string
+          faviconUrl: base64
         }
       }));
       setIsFaviconSelected(true);
-    };
-    reader.readAsDataURL(file);
+    } catch (error) {
+      console.error("Error compressing favicon", error);
+    }
   };
 
   const saveSettings = async () => {

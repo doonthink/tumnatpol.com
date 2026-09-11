@@ -72,7 +72,7 @@ export function BannerList() {
   };
 
   const handleNew = () => {
-    setFormData({ name: '', link: '', order: 0, status: 'Inactive', image: '' });
+    setFormData({ name: '', link: '', order: 0, status: 'Active', image: '' });
     setView('form');
   };
 

@@ -1,3 +1,4 @@
+import { compressImage } from "../../lib/imageUtils";
 import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Save, Image as ImageIcon, Eye, Plus, X, Type, Pointer, Layout, Palette, Check, Trash2, RefreshCw } from 'lucide-react';
 
@@ -74,43 +75,15 @@ export function BannerForm({ initialData, onSave, onCancel }: any) {
     });
   };
 
-  const handleImageUpload = (e: any, fieldPath: string[]) => {
+  const handleImageUpload = async (e: any, fieldPath: string[]) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const img = new Image();
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        let width = img.width;
-        let height = img.height;
-        const maxDim = 1200; // Limit size for banners
-        
-        if (width > maxDim || height > maxDim) {
-          if (width > height) {
-            height = Math.round((height * maxDim) / width);
-            width = maxDim;
-          } else {
-            width = Math.round((width * maxDim) / height);
-            height = maxDim;
-          }
-        }
-        
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext('2d');
-        if (ctx) {
-          ctx.drawImage(img, 0, 0, width, height);
-          const compressedBase64 = canvas.toDataURL('image/jpeg', 0.8);
-          updateField(fieldPath, compressedBase64);
-        } else {
-          updateField(fieldPath, event.target?.result as string);
-        }
-      };
-      img.src = event.target?.result as string;
-    };
-    reader.readAsDataURL(file);
+    try {
+      const base64 = await compressImage(file, 1200, 0.8);
+      updateField(fieldPath, base64);
+    } catch (error) {
+      console.error("Error compressing banner image", error);
+    }
   };
 
   const renderColorPicker = (label: string, path: string[], value: string) => (

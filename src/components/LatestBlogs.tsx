@@ -7,16 +7,23 @@ export function LatestBlogs() {
   const isEn = i18n.language?.startsWith('en');
   const [posts, setPosts] = useState<any[]>([]);
   const [categoriesData, setCategoriesData] = useState<any[]>([]);
+  const [blogSettings, setBlogSettings] = useState<any>({});
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [blogsRes, catsRes] = await Promise.all([
+                const [blogsRes, catsRes, settingsRes] = await Promise.all([
           fetch('/api/blogs'),
-          fetch('/api/categories')
+          fetch('/api/categories'),
+          fetch('/api/settings')
         ]);
         const data = await blogsRes.json();
         const catsData = await catsRes.json();
+        const settingsData = await settingsRes.json();
+        
+        if (settingsData && settingsData.pages && settingsData.pages.blog) {
+          setBlogSettings(settingsData.pages.blog);
+        }
         
         // Filter out drafts, sort by date descending, and take top 3
         const published = data.filter((blog: any) => blog.status === 'Published');
@@ -42,8 +49,12 @@ export function LatestBlogs() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-10">
         <div className="flex flex-col sm:flex-row justify-between items-end mb-12 gap-4">
           <div>
-            <h2 className="text-3xl font-bold text-[#0D1B3D] mb-4">{t('latest_blogs.title')}</h2>
-            <p className="text-lg text-slate-600 max-w-2xl">{t('latest_blogs.subtitle')}</p>
+            <h2 className="text-3xl font-bold text-[#0D1B3D] mb-4">
+              {isEn ? (blogSettings.home_title_en || t('latest_blogs.title')) : (blogSettings.home_title_th || t('latest_blogs.title'))}
+            </h2>
+            <p className="text-lg text-slate-600 max-w-2xl">
+              {isEn ? (blogSettings.home_subtitle_en || t('latest_blogs.subtitle')) : (blogSettings.home_subtitle_th || t('latest_blogs.subtitle'))}
+            </p>
           </div>
           <Link to="/blog" className="shrink-0 text-sm font-semibold text-[#B87333] hover:text-[#B87333]/80 transition-colors flex items-center gap-2">
             {t('latest_blogs.view_all')}

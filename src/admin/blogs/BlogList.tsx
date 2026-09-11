@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Plus, Edit2, Trash2, Search, MoreVertical, Eye, Pin } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { BlogBannerSettings } from './BlogBannerSettings';
 
 export function BlogList() {
   const { t } = useTranslation();
@@ -50,6 +51,8 @@ export function BlogList() {
           สร้างบทความใหม่ (Create Post)
         </Link>
       </div>
+
+      <BlogBannerSettings />
 
       <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
         <div className="p-4 border-b border-slate-200 flex flex-col sm:flex-row gap-4 justify-between items-center">

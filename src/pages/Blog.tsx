@@ -14,19 +14,25 @@ export function Blog() {
   const [currentPage, setCurrentPage] = useState(1);
   const [posts, setPosts] = useState<any[]>([]);
   const [categoriesData, setCategoriesData] = useState<any[]>([]);
+  const [blogSettings, setBlogSettings] = useState<any>({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [blogsRes, catsRes] = await Promise.all([
+                const [blogsRes, catsRes, settingsRes] = await Promise.all([
           fetch('/api/blogs'),
-          fetch('/api/categories')
+          fetch('/api/categories'),
+          fetch('/api/settings')
         ]);
         const blogsData = await blogsRes.json();
         const catsData = await catsRes.json();
+        const settingsData = await settingsRes.json();
         setPosts(blogsData.filter((blog: any) => blog.status === 'Published'));
         setCategoriesData(catsData);
+        if (settingsData && settingsData.pages && settingsData.pages.blog) {
+          setBlogSettings(settingsData.pages.blog);
+        }
       } catch (error) {
         console.error('Error fetching data:', error);
       } finally {
@@ -63,12 +69,33 @@ export function Blog() {
       <SEO title="Biztoptier Articles" />
       <Header />
       <main className="flex-grow py-12 px-4 sm:px-6 lg:px-10 max-w-7xl mx-auto w-full">
-        <div className="mb-12 text-center">
-          <h1 className="text-4xl font-bold text-[#0D1B3D] mb-4">Biztoptier Articles</h1>
-          <p className="text-lg text-slate-600 max-w-2xl mx-auto">
-            {isEn ? "Update business trends, new technologies, and knowledge to elevate your organization to Top Tier" : "อัปเดตเทรนด์ธุรกิจ เทคโนโลยีใหม่ๆ และเกร็ดความรู้ที่ช่วยยกระดับองค์กรของคุณสู่ Top Tier"}
-          </p>
-        </div>
+        {/* Dynamic Banner from Settings */}
+        {blogSettings.bg_type === 'image' && blogSettings.bg_image ? (
+          <div className="relative w-full h-[400px] mb-12 rounded-2xl overflow-hidden flex items-center justify-center text-center px-4" style={{ backgroundImage: `url('${blogSettings.bg_image}')`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
+            <div className="absolute inset-0 bg-black/50"></div>
+            <div className="relative z-10 max-w-3xl mx-auto">
+              <h1 className="text-4xl md:text-5xl font-bold mb-4" style={{ color: blogSettings.title_color || '#FFFFFF' }}>
+                {isEn ? (blogSettings.title_en || 'Blog') : (blogSettings.title_th || 'บทความ')}
+              </h1>
+              <p className="text-lg md:text-xl" style={{ color: blogSettings.subtitle_color || '#FFFFFF' }}>
+                {isEn ? (blogSettings.subtitle_en || 'Follow insightful articles') : (blogSettings.subtitle_th || 'ติดตามบทความและสาระดีจาก Business toptier')}
+              </p>
+            </div>
+          </div>
+        ) : (
+          <div className="mb-12 text-center p-12 rounded-2xl" style={{
+            background: blogSettings.bg_type === 'gradient' 
+              ? `linear-gradient(135deg, ${blogSettings.bg_color1 || '#FDFAF6'} 0%, ${blogSettings.bg_color2 || '#FFFFFF'} ${blogSettings.bg_color3 ? '50%, ' + blogSettings.bg_color3 + ' 100%' : '100%'}) `
+              : (blogSettings.bg_color1 || 'transparent')
+          }}>
+            <h1 className="text-4xl font-bold mb-4" style={{ color: blogSettings.title_color || '#0D1B3D' }}>
+              {isEn ? (blogSettings.title_en || 'Blog') : (blogSettings.title_th || 'บทความ')}
+            </h1>
+            <p className="text-lg max-w-2xl mx-auto" style={{ color: blogSettings.subtitle_color || '#64748B' }}>
+              {isEn ? (blogSettings.subtitle_en || 'Follow insightful articles and valuable content from Business toptier') : (blogSettings.subtitle_th || 'ติดตามบทความและสาระดีจาก Business toptier')}
+            </p>
+          </div>
+        )}
 
         <div className="flex flex-col lg:flex-row justify-between items-center mb-8 gap-4">
           <div className="relative w-full lg:w-96">

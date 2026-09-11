@@ -1,3 +1,4 @@
+import { compressImage } from "../../lib/imageUtils";
 import { useState, useEffect } from 'react';
 import { Save, User, Camera, Lock } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -21,14 +22,15 @@ export function Profile() {
     setFormData({ ...formData, [name]: value });
   };
 
-  const handleImageUpload = (e: any) => {
+  const handleImageUpload = async (e: any) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setFormData({ ...formData, profilePicture: reader.result as string });
-    };
-    reader.readAsDataURL(file);
+    try {
+      const base64 = await compressImage(file, 400);
+      setFormData({ ...formData, profilePicture: base64 });
+    } catch (error) {
+      console.error("Error compressing profile picture", error);
+    }
   };
 
   const handleSave = () => {

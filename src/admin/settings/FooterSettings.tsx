@@ -1,3 +1,4 @@
+import { compressImage } from "../../lib/imageUtils";
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Upload, X, Plus, Trash2, Save } from 'lucide-react';
@@ -255,14 +256,15 @@ export function FooterSettings({ settings, setSettings, saveSettings }: { settin
     });
   };
 
-  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        handleFooterChange('logoUrl', reader.result, ['middle']);
-      };
-      reader.readAsDataURL(file);
+      try {
+        const base64 = await compressImage(file, 400);
+        handleFooterChange('logoUrl', base64, ['middle']);
+      } catch (error) {
+        console.error("Error compressing footer logo", error);
+      }
     }
   };
 

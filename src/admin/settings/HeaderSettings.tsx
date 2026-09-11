@@ -1,3 +1,4 @@
+import { compressImage } from "../../lib/imageUtils";
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Upload, X, Plus, MoveUp, MoveDown, Trash2 } from 'lucide-react';
@@ -51,14 +52,15 @@ export function HeaderSettings({ settings, setSettings, saveSettings }: { settin
     }));
   };
 
-  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        handleHeaderChange('logoUrl', reader.result);
-      };
-      reader.readAsDataURL(file);
+      try {
+        const base64 = await compressImage(file, 400);
+        handleHeaderChange('logoUrl', base64);
+      } catch (error) {
+        console.error("Error compressing logo", error);
+      }
     }
   };
 

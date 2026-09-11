@@ -1,5 +1,5 @@
 import React from 'react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Save, Image as ImageIcon, Calendar, Video, Pin, Share2 } from 'lucide-react';
 import { Editor } from '@tinymce/tinymce-react';
@@ -11,6 +11,7 @@ export function BlogForm() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { id } = useParams();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [lang, setLang] = useState<'th' | 'en'>('th');
   const [isRawHtml, setIsRawHtml] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -30,6 +31,20 @@ export function BlogForm() {
     tags: '',
     status: 'Published'
   });
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const { compressImage } = await import('../../lib/imageUtils');
+      const base64 = await compressImage(file, 1200, 0.8);
+      setFormData(prev => ({ ...prev, coverImage: base64 }));
+    } catch (err) {
+      console.error('Failed to compress image', err);
+      alert('Failed to upload image');
+    }
+  };
 
   const [categories, setCategories] = useState<any[]>([]);
 
@@ -57,7 +72,11 @@ export function BlogForm() {
       const res = await fetch(`/api/blogs/${id}`);
       if (res.ok) {
         const data = await res.json();
-        setFormData(prev => ({ ...prev, ...data }));
+        setFormData(prev => ({ 
+          ...prev, 
+          ...data,
+          coverImage: data.image || data.coverImage || '' 
+        }));
         setIsPinned(data.isPinned || false);
       }
     } catch (error) {
@@ -200,6 +219,19 @@ export function BlogForm() {
                             setFormData(prev => ({ ...prev, [lang === 'en' ? 'content_en' : 'content']: content }));
                         }}
                         init={{
+
+                            images_upload_handler: async (blobInfo, progress) => {
+                              return new Promise(async (resolve, reject) => {
+                                try {
+                                  const file = blobInfo.blob();
+                                  const { compressImage } = await import('../../lib/imageUtils');
+                                  const base64 = await compressImage(file, 1000, 0.8);
+                                  resolve(base64);
+                                } catch (err) {
+                                  reject('Image upload failed: ' + err.message);
+                                }
+                              });
+                            },
                             height: 500,
                             menubar: true,
                             plugins: [
@@ -332,18 +364,37 @@ export function BlogForm() {
             
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">{t("admin.cover_image")}</label>
-              <div className="border-2 border-dashed border-slate-300 rounded-lg p-6 text-center hover:bg-slate-50 cursor-pointer transition-colors">
-                <ImageIcon className="w-10 h-10 text-slate-400 mx-auto mb-2" />
-                <span className="text-sm text-slate-500">{t("admin.upload_cover")}</span>
-                <p className="text-xs text-slate-400 mt-1">{t("admin.recommend_size")}</p>
-              </div>
-              <div className="mt-2">
+              {formData.coverImage ? (
+                <div className="relative rounded-lg overflow-hidden border border-slate-200 group">
+                  <img src={formData.coverImage} alt="Cover Preview" className="w-full h-48 object-cover" />
+                  <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                    <button type="button" onClick={() => fileInputRef.current?.click()} className="px-3 py-1.5 bg-white rounded-lg hover:bg-slate-50 text-slate-700 text-sm font-medium">เปลี่ยนรูปภาพ</button>
+                    <button type="button" onClick={() => setFormData(prev => ({ ...prev, coverImage: '' }))} className="px-3 py-1.5 bg-red-500 rounded-lg hover:bg-red-600 text-white text-sm font-medium">ลบ</button>
+                  </div>
+                </div>
+              ) : (
+                <div 
+                  onClick={() => fileInputRef.current?.click()}
+                  className="border-2 border-dashed border-slate-300 rounded-lg p-6 text-center hover:bg-slate-50 cursor-pointer transition-colors"
+                >
+                  <ImageIcon className="w-10 h-10 text-slate-400 mx-auto mb-2" />
+                  <span className="text-sm text-slate-500">{t("admin.upload_cover")}</span>
+                  <p className="text-xs text-slate-400 mt-1">{t("admin.recommend_size")}</p>
+                </div>
+              )}
+              <input type="file" accept="image/*" className="hidden" ref={fileInputRef} onChange={handleImageUpload} />
+              
+              <div className="mt-3">
                 <label className="block text-xs font-medium text-slate-700 mb-1">{t("admin.or_url")}</label>
                 <input 
                   type="text" 
                   name="coverImage"
-                  value={formData.coverImage || ''}
-                  onChange={handleChange}
+                  value={formData.coverImage?.startsWith('data:image') ? 'Uploaded Image (Base64)' : (formData.coverImage || '')}
+                  onChange={(e) => {
+                    if (e.target.value !== 'Uploaded Image (Base64)') {
+                      handleChange(e);
+                    }
+                  }}
                   className="w-full px-3 py-1.5 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#B87333] focus:border-transparent text-xs" 
                   placeholder="https://images.unsplash.com/..." 
                 />
